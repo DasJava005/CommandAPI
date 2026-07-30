@@ -1,4 +1,6 @@
-import commands.BalanceCommandTest;import commands.MessageCommandTest;import de.dasjava.commandAPI.command.CommandRegistry;
+import commands.BalanceCommandTest;
+import commands.MessageCommandTest;
+import de.dasjava.commandAPI.command.CommandRegistry;
 import de.dasjava.commandAPI.parser.Parser;
 import org.bukkit.plugin.java.JavaPlugin;
 

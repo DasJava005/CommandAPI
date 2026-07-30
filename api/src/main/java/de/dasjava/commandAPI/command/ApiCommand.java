@@ -60,12 +60,57 @@ public final class ApiCommand {
         return arguments;
     }
 
-    public String getCommandUsage(){
-        StringBuilder syntax = new StringBuilder("/" + this.commandNamespace);
+    public String getCommandSyntax(){
+        StringBuilder syntax = new StringBuilder(this.commandNamespace);
         for(String arg : arguments.getArguments()){
             syntax.append(" ").append(arg);
         }
         return syntax.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(this == obj){
+            return true;
+        }
+
+        if(!(obj instanceof ApiCommand other)){
+            return false;
+        }
+
+        if(!this.commandNamespace.equals(other.commandNamespace)) return false;
+        if(this.senderType != other.senderType) return false;
+
+        if(this.arguments.getArgLength() != other.arguments.getArgLength()) return false;
+
+        for(int i = 0; i < this.arguments.getArgLength(); i++){
+            if(arguments().isLiteral(i) != other.arguments().isLiteral(i)) return false;
+            if(arguments().isLiteral(i)){
+                if(!arguments().getArgument(i).equals(other.arguments().getArgument(i))) return false;
+
+            }else{
+                if(arguments().getArgumentType(i) != other.arguments().getArgumentType(i)) return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = commandNamespace.hashCode();
+
+        result = 31 * result + senderType.hashCode();
+        result = 31 * result + arguments.getArgLength();
+
+        for(int i = 0; i < arguments.getArgLength(); i++) {
+            if(arguments.isLiteral(i)) {
+                result = 31 * result + arguments.getArgument(i).hashCode();
+            } else {
+                result = 31 * result + arguments.getArgumentType(i).hashCode();
+            }
+        }
+
+        return result;
     }
 
 }
