@@ -1,0 +1,7 @@
+name: CommandAPI-Testplugin
+version: '1.0'
+
+main: Main
+api-version: '1.21'
+
+authors: [ DasJava ]
