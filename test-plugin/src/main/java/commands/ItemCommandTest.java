@@ -9,7 +9,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-@CommandGroup("item")
+@CommandGroup(value = "item", aliases = {"i"})
 public class ItemCommandTest {
 
     @Command("")

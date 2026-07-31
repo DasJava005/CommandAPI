@@ -68,6 +68,12 @@ public final class DefaultCommandExecutor implements ApiCommandExecutor {
         }
 
         if(result != null) {
+            String permission = result.getPermission();
+            if(!commandSender.hasPermission(permission)) {
+                feedbackProvider.noPermission(commandSender, commandName, args, permission);
+                return false;
+            }
+
             try {
                 result.execute(objects); // use reflection to run the command
                 feedbackProvider.executed(commandSender, result);
