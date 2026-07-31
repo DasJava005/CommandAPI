@@ -30,6 +30,7 @@ public class BalanceCommandTest {
 
         player.sendMessage("Sent " + ChatColor.GOLD + target.getName() + ChatColor.RESET + " " + amount + " coins.");
     }
+
     @Command("info <target>")
     public void balanceInfoCommand(Player player, @Argument("target") OfflinePlayer target){
         int balance = 5;

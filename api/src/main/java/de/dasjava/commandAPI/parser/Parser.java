@@ -1,10 +1,11 @@
 package de.dasjava.commandAPI.parser;
 
-import de.dasjava.commandAPI.parser.parsers.bukkit.OfflinePlayerTypeParser;
-import de.dasjava.commandAPI.parser.parsers.bukkit.PlayerTypeParser;
-import de.dasjava.commandAPI.parser.parsers.bukkit.UuidTypeParser;
+import de.dasjava.commandAPI.parser.parsers.bukkit.*;
 import de.dasjava.commandAPI.parser.parsers.primitives.*;
+import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -15,11 +16,11 @@ public class Parser {
 
     private final Map<Class<?>, TypeParser<?>> parsers = new HashMap<>();
 
-    private final <T> void registerParser(Class<T> type, TypeParser<T> parser) {
+    private <T> void registerParser(Class<T> type, TypeParser<T> parser) {
         parsers.put(type, parser);
     }
 
-    public final Object parse(Class<?> type, String value) {
+    public final Object parse(Class<?> type, String value) throws IllegalArgumentException, ParseException {
         type = wrap(type);
         TypeParser<?> parser = parsers.get(type);
 
@@ -80,18 +81,21 @@ public class Parser {
         }
     }
 
-    public static Parser createDefaultParser(){
+    public static Parser createDefaultParser() {
         return Parser.builder()
                 .defaults()
                 .build();
     }
 
-    public static Parser createDefaultBukkitParser(){
+    public static Parser createDefaultBukkitParser() {
         return Parser.builder()
                 .defaults()
                 .registerTypeParser(Player.class, new PlayerTypeParser())
                 .registerTypeParser(UUID.class, new UuidTypeParser())
                 .registerTypeParser(OfflinePlayer.class, new OfflinePlayerTypeParser())
+                .registerTypeParser(GameMode.class, new GameModeTypeParser())
+                .registerTypeParser(Material.class, new MaterialTypeParser())
+                .registerTypeParser(Enchantment.class, new EnchantmentTypeParser())
                 .build();
     }
 

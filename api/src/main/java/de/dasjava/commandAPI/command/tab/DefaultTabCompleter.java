@@ -1,27 +1,21 @@
-package de.dasjava.commandAPI.command;
+package de.dasjava.commandAPI.command.tab;
 
+import de.dasjava.commandAPI.command.ApiCommand;
+import de.dasjava.commandAPI.command.SenderType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class ApiTabCompleter {
+public class DefaultTabCompleter implements ApiTabCompleter {
 
-    private final CommandRegistry registry;
-
-    public ApiTabCompleter(CommandRegistry registry) {
-        this.registry = registry;
-    }
-
-    public List<String> onTabComplete(@NonNull CommandSender commandSender, @NonNull String commandName, String @NonNull [] args) {
+    public List<String> complete(CommandSender commandSender, String commandName, List<ApiCommand> commands, String[] args) {
         if(!(commandSender instanceof Player)) return List.of();
 
         final int index = args.length;
 
-        List<ApiCommand> commands = registry.getCommands(commandName).stream()
-                .filter(command -> command.getSenderType() == SenderType.PLAYER)
+        commands = commands.stream().filter(command -> command.getSenderType() == SenderType.PLAYER)
                 .filter(command -> command.arguments().getArgLength() >= index)
                 .filter(command -> {
                     for(int i = 0; i < index; i++) {

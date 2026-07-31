@@ -3,6 +3,10 @@ package de.dasjava.commandAPI.command;
 import de.dasjava.commandAPI.command.annotations.Argument;
 import de.dasjava.commandAPI.command.annotations.Command;
 import de.dasjava.commandAPI.command.annotations.CommandGroup;
+import de.dasjava.commandAPI.command.executor.ApiCommandExecutor;
+import de.dasjava.commandAPI.command.executor.DefaultCommandExecutor;
+import de.dasjava.commandAPI.command.executor.feedback.CommandFeedbackProvider;
+import de.dasjava.commandAPI.command.tab.ApiTabCompleter;
 import de.dasjava.commandAPI.parser.Parser;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
@@ -20,14 +24,14 @@ public class CommandRegistry {
     private final JavaPlugin plugin;
 
     private final ApiCommandExecutor executor;
-    private final ApiTabCompleter tabCompleter;
+    private final ApiTabCompleter completer;
 
     private final Map<String, List<ApiCommand>> commandMap = new HashMap<>();
 
-    public CommandRegistry(JavaPlugin plugin, Parser parser) {
+    public CommandRegistry(JavaPlugin plugin, Parser parser, CommandFeedbackProvider feedbackProvider, ApiTabCompleter completer) {
         this.plugin = plugin;
-        this.executor = new ApiCommandExecutor(this, parser);
-        this.tabCompleter = new ApiTabCompleter(this);
+        this.executor = new DefaultCommandExecutor(parser, feedbackProvider);
+        this.completer = completer;
     }
 
     public void registerCommands(Object obj) throws IllegalArgumentException {
@@ -76,12 +80,13 @@ public class CommandRegistry {
            }
 
            //success - register the commands
+           final String permission = method.getAnnotation(Command.class).permission();
            final String description = obj.getClass().getAnnotation(CommandGroup.class).description();
            final String[] aliases = obj.getClass().getAnnotation(CommandGroup.class).aliases();
            if (!this.commandMap.containsKey(commandName)) {
                this.registerBukkitCommand(commandName, description, aliases);
            }
-           registerApiCommand(commandName, obj, method, senderType, arguments, parameterType, description, aliases);
+           registerApiCommand(commandName, obj, method, senderType, permission, arguments, parameterType, description, aliases);
 
            System.out.println("Registered new command: " + commandName + " " + syntax);
        }
@@ -103,13 +108,14 @@ public class CommandRegistry {
                                     Object instance,
                                     Method method,
                                     SenderType senderType,
+                                    String permission,
                                     String[] arguments,
                                     Class<?>[] parameterTypes,
                                     String description,
                                     String[] aliases) {
 
         method.setAccessible(true);
-        ApiCommand apiCommand = new ApiCommand(instance, method, senderType, arguments, parameterTypes, description, aliases);
+        ApiCommand apiCommand = new ApiCommand(instance, method, senderType, permission, arguments, parameterTypes, description, aliases);
         this.commandMap.computeIfAbsent(commandName, str -> new ArrayList<>()).add(apiCommand);
 
         for(String alias : aliases){ // register aliases of the command
@@ -143,14 +149,21 @@ public class CommandRegistry {
 
     private org.bukkit.command.Command createBukkitCommand(String namespace, String description, String[] aliases) {
         org.bukkit.command.Command command = new org.bukkit.command.Command(namespace) {
-            @Override
-            public boolean execute(@NonNull CommandSender commandSender, @NonNull String s, String @NonNull [] strings) {
-                return executor.onCommand(commandSender, s, strings);
-            }
 
             @Override
-            public List<String> tabComplete(@NonNull CommandSender sender, @NonNull String alias, String @NonNull [] args) throws IllegalArgumentException {
-                return tabCompleter.onTabComplete(sender, alias, args);
+            public boolean execute(@NonNull CommandSender commandSender, @NonNull String s, String @NonNull [] strings) {
+                List<ApiCommand> commands = getCommands(s);
+                if(commands.isEmpty()) return false;
+                return executor.execute(commandSender, s, commands, strings);
+            }
+
+            @NonNull
+            @Override
+            public List<String> tabComplete(@NonNull CommandSender sender, @NonNull String alias, String @NonNull [] args) {
+                if(completer == null) return List.of();
+                final List<ApiCommand> commands = getCommands(alias);
+                if(commands.isEmpty()) return List.of();
+                return completer.complete(sender, alias, commands ,args);
             }
         };
 
@@ -160,8 +173,8 @@ public class CommandRegistry {
         return command;
     }
 
-    protected List<ApiCommand> getCommands(String commandName) {
-        return this.commandMap.get(commandName);
+    public List<ApiCommand> getCommands(String commandName) {
+        return new ArrayList<>(this.commandMap.get(commandName));
     }
 
 }

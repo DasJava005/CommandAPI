@@ -1,6 +1,10 @@
-package de.dasjava.commandAPI.command;
+package de.dasjava.commandAPI.command.executor;
 
+import de.dasjava.commandAPI.command.ApiCommand;
+import de.dasjava.commandAPI.command.SenderType;
+import de.dasjava.commandAPI.command.executor.feedback.CommandFeedbackProvider;
 import de.dasjava.commandAPI.command.input.TextInput;
+import de.dasjava.commandAPI.parser.ParseException;
 import de.dasjava.commandAPI.parser.Parser;
 import org.bukkit.command.CommandSender;
 import org.jspecify.annotations.NonNull;
@@ -8,22 +12,29 @@ import org.jspecify.annotations.NonNull;
 import java.util.*;
 import java.util.function.Predicate;
 
-public final class ApiCommandExecutor {
+public final class DefaultCommandExecutor implements ApiCommandExecutor {
 
     private final Parser parser;
-    private final CommandRegistry registry;
+    private final CommandFeedbackProvider feedbackProvider;
 
-    public ApiCommandExecutor(CommandRegistry registry, Parser parser) {
-        this.registry = registry;
+    public DefaultCommandExecutor(Parser parser, CommandFeedbackProvider feedbackProvider) {
         this.parser = parser;
+        this.feedbackProvider = feedbackProvider;
     }
 
-    public boolean onCommand(@NonNull CommandSender commandSender, @NonNull String commandName, @NonNull String[] args) {
-        final int commandArgsLength = args.length;
+    public boolean execute(CommandSender commandSender, String commandName, List<ApiCommand> commands, String[] args) {
+        final int inputArgsLength = args.length;
         final SenderType senderType = SenderType.getFromObject(commandSender);
 
-        final List<ApiCommand> literalMatches = getMatchingCommands(senderType, commandName, args);
+        final List<ApiCommand> literalMatches = getMatchingCommands(senderType, commands, args);
 
+        if(literalMatches.isEmpty()) {
+            feedbackProvider.unknownCommand(commandSender, commandName, args);
+            return false;
+        }
+        
+        ParseException exception = null;
+        
         ApiCommand result = null;
         Object[] objects = null; // cache objects that are required to run the command via reflections
         commands: for(ApiCommand apiCommand : literalMatches) {
@@ -38,7 +49,7 @@ public final class ApiCommandExecutor {
                 try {
                     if(clazz == TextInput.class){
                         StringBuilder stringBuilder = new StringBuilder();
-                        for(int k = i; k < commandArgsLength; k++) {
+                        for(int k = i; k < inputArgsLength; k++) {
                             stringBuilder.append(" ").append(args[k]);
                         }
                         objects[j] = new TextInput(stringBuilder.toString());
@@ -46,7 +57,8 @@ public final class ApiCommandExecutor {
                         objects[j] = parser.parse(clazz, args[i]); // args[i] the real "type" the user provided
                     }
                     j++;
-                }catch (Exception e){
+                }catch(Exception e){
+                    if(e instanceof ParseException) exception = (ParseException) e;
                     continue commands;
                 }
             }
@@ -58,27 +70,33 @@ public final class ApiCommandExecutor {
         if(result != null) {
             try {
                 result.execute(objects); // use reflection to run the command
+                feedbackProvider.executed(commandSender, result);
+                return true;
             }catch (Exception e){
-                commandSender.sendMessage("An unknown reflection error occurred.");
+                feedbackProvider.internalError(commandSender);
+                return false;
             }
         }else {
-            commandSender.sendMessage("Could not find command for your input!");
+            feedbackProvider.invalidArguments(commandSender, commandName, args, exception, literalMatches.getFirst());
+            return false;
         }
 
-        return true;
     }
 
     /**
      *
      * @return All commands that match with all the provided literals.
      */
-    private List<ApiCommand> getMatchingCommands(SenderType senderType, String commandNameSpace, String[] args){
-        List<ApiCommand> literalMatches = registry.getCommands(commandNameSpace).stream()
+    private List<ApiCommand> getMatchingCommands(SenderType senderType, List<ApiCommand> commands, String[] args){
+        List<ApiCommand> literalMatches = commands.stream()
                 .filter(senderTypeFilter(senderType))
                 .filter(literalFilter(args))
                 .sorted((c1, c2) -> c2.arguments().getArgLength() - c1.arguments().getArgLength())
                 .toList();
 
+        if(literalMatches.isEmpty()) {
+            return Collections.emptyList();
+        }
         int maxLength = literalMatches.getFirst().arguments().getArgLength();
 
         literalMatches = literalMatches.stream()

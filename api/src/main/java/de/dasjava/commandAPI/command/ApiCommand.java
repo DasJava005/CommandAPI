@@ -14,12 +14,14 @@ public final class ApiCommand {
     private final String[] aliases;
 
     private final SenderType senderType;
+    private final String permission;
 
     private final CommandArguments arguments;
 
     public ApiCommand(Object instance,
                       Method method,
                       SenderType senderType,
+                      String permission,
                       String[] arguments,
                       Class<?>[] argTypes,
                       String description,
@@ -27,7 +29,9 @@ public final class ApiCommand {
 
         this.instance = instance;
         this.method = method;
+
         this.senderType = senderType;
+        this.permission = permission;
 
         this.commandNamespace = instance.getClass().getAnnotation(CommandGroup.class).value();
         this.description = description;
@@ -43,17 +47,19 @@ public final class ApiCommand {
     public String getCommandName() {
         return this.commandNamespace;
     }
-
     public String getDescription() {
         return this.description;
     }
-
     public String[] getAliases() {
         return aliases;
     }
 
     public SenderType getSenderType() {
         return senderType;
+    }
+
+    public String getPermission() {
+        return permission;
     }
 
     public CommandArguments arguments() {
