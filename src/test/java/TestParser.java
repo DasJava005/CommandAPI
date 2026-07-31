@@ -1,5 +1,5 @@
-import de.dasjava.commandAPI.parser.ParseException;
-import de.dasjava.commandAPI.parser.Parser;
+import com.github.DasJava005.parser.ParseException;
+import com.github.DasJava005.parser.Parser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
