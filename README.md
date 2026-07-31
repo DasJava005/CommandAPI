@@ -26,11 +26,6 @@ We can achieve this using the annotations @CommandGroup, @Command, and @Argument
 @CommandGroup(value = "item", aliases = {"i"})
 public class ItemCommandTest {
 
-    @Command("")
-    public void baseCommand(Player player) {
-        player.sendMessage("Usage: /item get <material> <amount>");
-    }
-
     @Command("get <material> <amount>")
     public void itemCommand(Player player,
                               @Argument("material") Material mat,
@@ -60,4 +55,18 @@ The simplest way is to use the CommandRegistryFactory with the provided default 
 
     registry.registerCommands(new ItemCommandTest());
 }
+```
+## Maven Dependency
+```maven
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+```
+```maven
+	<dependency>
+	    <groupId>com.github.DasJava005</groupId>
+	    <artifactId>CommandAPI</artifactId>
+	    <version>v1.0.3</version>
+	</dependency>
 ```
