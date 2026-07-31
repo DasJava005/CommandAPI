@@ -7,21 +7,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.DasJava005</groupId>
-    <artifactId>CommandApi</artifactId>
+    <artifactId>CommandAPI</artifactId>
     <version>1.0.0</version>
-    <packaging>pom</packaging>
-
-    <name>commandapi</name>
-
-    <modules>
-        <module>api</module>
-        <module>test-plugin</module>
-    </modules>
+    <packaging>jar</packaging>
+    <name>CommandAPI</name>
 
     <properties>
         <java.version>21</java.version>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -39,20 +32,5 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.14.0</version>
-                    <configuration>
-                        <release>${java.version}</release>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
 
 </project>
