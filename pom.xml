@@ -6,12 +6,12 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>de.dasjava</groupId>
-    <artifactId>commandapi</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <groupId>com.github.DasJava005</groupId>
+    <artifactId>CommandApi</artifactId>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
 
-    <name>CommandAPI</name>
+    <name>commandapi</name>
 
     <modules>
         <module>api</module>

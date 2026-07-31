@@ -7,11 +7,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>de.dasjava</groupId>
-        <artifactId>commandapi</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <groupId>com.github.DasJava005</groupId>
+        <artifactId>CommandApi</artifactId>
+        <version>1.0.0</version>
     </parent>
 
     <artifactId>api</artifactId>
+    <packaging>jar</packaging>
 
 </project>
