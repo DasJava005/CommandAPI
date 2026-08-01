@@ -9,10 +9,15 @@ import com.github.DasJava005.parser.Parser;
 import org.bukkit.command.CommandSender;
 import org.jspecify.annotations.NonNull;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class DefaultCommandExecutor implements ApiCommandExecutor {
+
+    private static final Logger LOGGER = Logger.getLogger(DefaultCommandExecutor.class.getName());
 
     private final Parser parser;
     private final CommandFeedbackProvider feedbackProvider;
@@ -57,8 +62,10 @@ public final class DefaultCommandExecutor implements ApiCommandExecutor {
                         objects[j] = parser.parse(clazz, args[i]); // args[i] the real "type" the user provided
                     }
                     j++;
-                }catch(Exception e){
-                    if(e instanceof ParseException) exception = (ParseException) e;
+                }catch(ParseException e){
+                    exception = e;
+                    continue commands;
+                }catch (Exception e){
                     continue commands;
                 }
             }
@@ -69,16 +76,24 @@ public final class DefaultCommandExecutor implements ApiCommandExecutor {
 
         if(result != null) {
             String permission = result.getPermission();
-            if(!commandSender.hasPermission(permission)) {
-                feedbackProvider.noPermission(commandSender, commandName, args, permission);
-                return false;
+            if(!permission.isBlank())   {
+                if(!commandSender.hasPermission(permission)) {
+                    feedbackProvider.noPermission(commandSender, commandName, args, permission);
+                    return false;
+                }
             }
 
             try {
                 result.execute(objects); // use reflection to run the command
                 feedbackProvider.executed(commandSender, result);
                 return true;
-            }catch (Exception e){
+            } catch (InvocationTargetException ite) {
+                Throwable cause = ite.getCause();
+                LOGGER.log(Level.SEVERE, "Command threw an exception.", Objects.requireNonNullElse(cause, ite));
+                feedbackProvider.internalError(commandSender);
+                return false;
+            }catch (ReflectiveOperationException roe){
+                LOGGER.log(Level.SEVERE, "Internal api reflection error.", roe);
                 feedbackProvider.internalError(commandSender);
                 return false;
             }
