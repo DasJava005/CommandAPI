@@ -70,3 +70,4 @@ The simplest way is to use the CommandRegistryFactory with the provided default 
 	    <version>v1.0.3</version>
 	</dependency>
 ```
+JitPack: https://jitpack.io/#DasJava005/CommandAPI
