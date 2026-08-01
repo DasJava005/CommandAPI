@@ -67,7 +67,7 @@ The simplest way is to use the CommandRegistryFactory with the provided default 
 	<dependency>
 	    <groupId>com.github.DasJava005</groupId>
 	    <artifactId>CommandAPI</artifactId>
-	    <version>v1.0.3</version>
+	    <version>v1.0.4</version>
 	</dependency>
 ```
 JitPack: https://jitpack.io/#DasJava005/CommandAPI
